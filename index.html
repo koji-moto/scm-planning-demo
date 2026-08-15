@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="8週間の未来在庫を確認できる学習用需給計画システム">
+  <title>Stockscape｜超小型需給計画</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <nav class="nav" aria-label="メインナビゲーション">
+      <a class="brand" href="#">Stock<span>scape</span></a>
+      <div class="nav-note"><span class="live-dot"></span> 学習用デモデータ</div>
+    </nav>
+    <div class="hero-content">
+      <div>
+        <p class="eyebrow">SUPPLY &amp; DEMAND PLANNING</p>
+        <h1>未来の在庫を、<br><em>ひと目で。</em></h1>
+      </div>
+      <p class="hero-copy">販売計画と製造計画から、冷凍食品3商品の<br class="desktop">8週間先までの在庫推移をシミュレーションします。</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="summary" aria-label="全体サマリー">
+      <article><span>対象商品</span><strong>3<small>商品</small></strong></article>
+      <article><span>計画期間</span><strong>8<small>週間</small></strong></article>
+      <article><span>欠品見込み</span><strong id="shortage-count">0<small>件</small></strong></article>
+      <article><span>安全在庫割れ</span><strong id="warning-count">0<small>件</small></strong></article>
+    </section>
+
+    <section class="workspace" aria-labelledby="planning-title">
+      <div class="section-heading">
+        <div><p class="eyebrow dark">WEEKLY PLAN</p><h2 id="planning-title">8週間 需給計画</h2></div>
+        <p><span class="edit-mark">✎</span> 白い入力欄の製造数を変更できます</p>
+      </div>
+      <div id="product-tabs" class="tabs" role="tablist" aria-label="商品を選択"></div>
+      <div id="product-meta" class="product-meta"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>計画項目</th><th>1週目</th><th>2週目</th><th>3週目</th><th>4週目</th><th>5週目</th><th>6週目</th><th>7週目</th><th>8週目</th></tr></thead>
+          <tbody id="plan-table"></tbody>
+        </table>
+      </div>
+      <div class="legend" aria-label="在庫ステータスの凡例">
+        <span><i class="normal"></i>適正在庫</span><span><i class="warning"></i>安全在庫未満</span><span><i class="shortage"></i>欠品（0未満）</span>
+      </div>
+    </section>
+
+    <section class="chart-section" aria-labelledby="chart-title">
+      <div class="section-heading">
+        <div><p class="eyebrow dark">INVENTORY OUTLOOK</p><h2 id="chart-title">在庫推移</h2></div>
+        <div class="chart-legend"><span><i class="line-stock"></i>週末在庫</span><span><i class="line-safe"></i>安全在庫</span></div>
+      </div>
+      <div class="chart-card"><canvas id="inventory-chart" role="img" aria-label="選択商品の8週間の週末在庫と安全在庫の折れ線グラフ"></canvas></div>
+    </section>
+  </main>
+  <footer><strong>Stockscape</strong><span>架空データで学ぶ、需給計画の基本</span></footer>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
