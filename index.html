@@ -7,8 +7,8 @@
 </head>
 <body>
   <header class="topbar"><div class="brand">Stock<span>scape</span><i></i><small>SCM Control Tower</small></div><div class="header-actions"><span class="data-badge">● DEMO DATA</span><span>最終更新 2026/08/16 09:00</span><button aria-label="通知">🔔<b>5</b></button></div></header>
-  <nav class="nav-tabs" aria-label="表示モード"><button class="active" data-view="executive">経営ダッシュボード</button><button data-view="operations">需給シミュレーション</button><button data-view="operations">製造・発注計画</button></nav>
-  <main>
+  <nav class="nav-tabs" aria-label="表示モード"><button class="active" data-view="executive">経営ダッシュボード</button><button data-view="simulation">需給シミュレーション</button><button data-view="planning">AI製造計画</button><button data-view="materials">資材・発注計画</button></nav>
+  <main id="executive-view" class="app-view active-view">
     <section class="page-head"><div><p>EXECUTIVE OVERVIEW</p><h1>SCM Executive Dashboard</h1><span>今後8週間の需給・在庫・供給リスクを俯瞰</span></div><div class="period">計画期間 <strong>第1週 — 第8週</strong></div></section>
     <section id="kpis" class="kpi-grid" aria-label="経営KPIサマリ"></section>
     <div class="two-col">
@@ -22,6 +22,20 @@
       <section class="panel"><div class="panel-title"><div><small>PROCUREMENT</small><h2>仕入品発注管理</h2></div></div><div id="purchases" class="purchase-list"></div></section>
     </div>
     <section class="panel factory"><div class="panel-title"><div><small>FACTORY CAPACITY</small><h2>製造計画・工場キャパ</h2></div><div class="capacity-legend"><i class="ok"></i>正常 <i class="care"></i>注意 <i class="heavy"></i>高負荷 <i class="over"></i>能力不足</div></div><div id="factories" class="factory-grid"></div></section>
-  </main><footer><strong>Stockscape</strong><span>SCM Control Tower — Executive PoC / すべて架空データ</span></footer>
+  </main>
+  <main id="planning-view" class="app-view planner-view" hidden>
+    <section class="planner-head"><div><p>AI PRODUCTION SCHEDULER</p><h1>AI製造計画</h1><span>販売・在庫・ライン能力をつないだインタラクティブ計画</span><strong id="planning-basis" class="planning-basis">計画基準日：—</strong></div><div class="planner-actions"><span class="sync-state">● 計画・未来在庫 連動中</span><button id="create-ai-plan" class="primary-action">✦ AI製造計画を作成</button></div></section>
+    <div id="planner-toast" class="planner-toast" role="status" aria-live="polite"></div>
+    <section class="planning-summary" aria-label="製造計画サマリー"><article><span>計画期間（8週間）</span><strong id="planning-period">—</strong></article><article><span>対象ライン</span><strong>2工場 / 4ライン</strong></article><article><span>計画製造量</span><strong id="total-production">—</strong></article><article><span>制約違反</span><strong id="violation-count">—</strong></article></section>
+    <div class="planner-layout">
+      <div class="planner-main">
+        <section class="panel schedule-panel"><div class="panel-title"><div><small>PRODUCTION BOARD</small><h2>日別・ライン別 製造スケジュール</h2></div><div class="board-legend"><i></i>ドラッグして日付・ラインを変更 <b>稼働上限：1品 16h / 2品 14h</b></div></div><div class="schedule-scroll"><div id="schedule-board" class="schedule-board"></div></div></section>
+      </div>
+      <aside class="ai-side panel"><div class="ai-side-head"><span>✦</span><div><small>PLANNING COPILOT</small><h2>Stockscape AI</h2></div><b>DEMO</b></div><div id="ai-analysis"></div><button id="apply-ai-suggestion" class="primary-action full">AI提案を適用</button><p class="ai-note">販売計画・現在庫・安全在庫・ライン能力をルールベースで分析しています。</p></aside>
+    </div>
+    <section class="panel future-panel"><div class="panel-title"><div><small>8-WEEK INVENTORY OUTLOOK</small><h2>未来在庫シミュレーション</h2></div><div class="inventory-summary"><span><i class="normal"></i>正常</span><span><i class="warning"></i>安全在庫割れ</span><span><i class="shortage"></i>欠品</span></div></div><div class="inventory-chart-wrap"><canvas id="planner-inventory-chart"></canvas></div><div class="table-wrap"><table class="future-table"><thead id="future-head"></thead><tbody id="future-body"></tbody></table></div></section>
+  </main>
+  <main id="simple-view" class="app-view simple-view" hidden><section class="empty-feature panel"><div class="feature-icon">▦</div><p id="simple-eyebrow">SUPPLY &amp; DEMAND</p><h1 id="simple-title">需給シミュレーション</h1><span id="simple-copy">経営ダッシュボードの商品別需給シミュレーションへ移動します。</span><button id="simple-action" class="primary-action">シミュレーションを確認</button></section></main>
+  <footer><strong>Stockscape</strong><span>SCM Control Tower — Executive PoC / すべて架空データ</span></footer>
   <script type="module" src="app.js"></script>
 </body></html>
