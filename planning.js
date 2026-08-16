@@ -15,7 +15,8 @@ export function getTokyoDate(now = new Date()) {
 
 export function getPlanningStart(date) {
   const day = new Date(`${date}T00:00:00Z`).getUTCDay();
-  return addDays(date, -(day === 0 ? 6 : day - 1));
+  const daysUntilMonday = (8 - day) % 7;
+  return addDays(date, daysUntilMonday);
 }
 
 export const REFERENCE_DATE = getTokyoDate();
