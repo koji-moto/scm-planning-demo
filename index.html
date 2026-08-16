@@ -6,7 +6,7 @@
   <title>SCM Executive Dashboard｜Stockscape</title><link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="topbar"><div class="brand">Stock<span>scape</span><i></i><small>SCM Control Tower</small></div><div class="header-actions"><span class="data-badge">● DEMO DATA</span><span>最終更新 2026/08/16 09:00</span><button aria-label="通知">🔔<b>5</b></button></div></header>
+  <header class="topbar"><div class="brand">Stock<span>scape</span><i></i><small>SCM Control Tower</small></div><div class="header-actions"><span class="data-badge">● DEMO DATA</span><span id="planning-reference-date"></span><button aria-label="通知">🔔<b>5</b></button></div></header>
   <nav class="nav-tabs" aria-label="表示モード"><button class="active" data-view="executive">経営ダッシュボード</button><button data-view="simulation">需給シミュレーション</button><button data-view="planning">AI製造計画</button><button data-view="materials">資材・発注計画</button></nav>
   <main id="executive-view" class="app-view active-view">
     <section class="page-head"><div><p>EXECUTIVE OVERVIEW</p><h1>SCM Executive Dashboard</h1><span>今後8週間の需給・在庫・供給リスクを俯瞰</span></div><div class="period">計画期間 <strong>第1週 — 第8週</strong></div></section>
@@ -26,7 +26,7 @@
   <main id="planning-view" class="app-view planner-view" hidden>
     <section class="planner-head"><div><p>AI PRODUCTION SCHEDULER</p><h1>AI製造計画</h1><span>販売・在庫・ライン能力をつないだインタラクティブ計画</span></div><div class="planner-actions"><span class="sync-state">● 計画・未来在庫 連動中</span><button id="create-ai-plan" class="primary-action">✦ AI製造計画を作成</button></div></section>
     <div id="planner-toast" class="planner-toast" role="status" aria-live="polite"></div>
-    <section class="planning-summary" aria-label="製造計画サマリー"><article><span>計画期間</span><strong>2026/08/17 — 08/28</strong></article><article><span>対象ライン</span><strong>2工場 / 4ライン</strong></article><article><span>計画製造量</span><strong id="total-production">—</strong></article><article><span>制約違反</span><strong id="violation-count">—</strong></article></section>
+    <section class="planning-summary" aria-label="製造計画サマリー"><article><span>計画期間</span><strong id="planning-period">—</strong></article><article><span>対象ライン</span><strong>2工場 / 4ライン</strong></article><article><span>計画製造量</span><strong id="total-production">—</strong></article><article><span>制約違反</span><strong id="violation-count">—</strong></article></section>
     <div class="planner-layout">
       <div class="planner-main">
         <section class="panel schedule-panel"><div class="panel-title"><div><small>PRODUCTION BOARD</small><h2>日別・ライン別 製造スケジュール</h2></div><div class="board-legend"><i></i>ドラッグして日付・ラインを変更 <b>稼働上限：1品 16h / 2品 14h</b></div></div><div class="schedule-scroll"><div id="schedule-board" class="schedule-board"></div></div></section>

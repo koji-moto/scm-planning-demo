@@ -1,10 +1,15 @@
-import { products, WEEKS, WAREHOUSES, factories, purchaseOrders, calculateInventory, getStatus, warehousePlan } from './inventory.js';
-import { PLANNING_DATES, LINES, planningProducts, initialBatches, optimizedBatches, cellConstraint, calculatePlanningInventory } from './planning.js';
+import { products, WAREHOUSES, factories, purchaseOrders, calculateInventory, getStatus, warehousePlan } from './inventory.js';
+import { REFERENCE_DATE, PLAN_START_DATE, PLANNING_DATES, WEEK_START_DATES, addDays, LINES, planningProducts, initialBatches, optimizedBatches, cellConstraint, calculatePlanningInventory } from './planning.js';
 
 const format = value => Number(value).toLocaleString('ja-JP');
 const productSelect = document.querySelector('#product-select');
 const warehouseSelect = document.querySelector('#warehouse-select');
 const canvas = document.querySelector('#inventory-chart');
+const formatFullDate = date => date.replace(/-/g, '/');
+const formatDate = date => `${Number(date.slice(5, 7))}/${Number(date.slice(8))}`;
+const PLAN_WEEKS = WEEK_START_DATES.map((date, index) => `第${index + 1}週 ${formatDate(date)}〜`);
+document.querySelector('#planning-reference-date').textContent = `計画基準日：${formatFullDate(REFERENCE_DATE)}`;
+document.querySelector('#planning-period').textContent = `${formatFullDate(PLAN_START_DATE)} — ${formatFullDate(addDays(PLAN_START_DATE, 55))}`;
 
 const kpis = [
   ['供給充足率','96.8','%','+1.2pt','good'],['8週間販売計画数量','48,620','cs','+3.8%','good'],['総在庫数量','18,450','cs','前週比 -2.4%',''],
@@ -39,7 +44,7 @@ function renderSimulation() {
   const { product, plan } = selected();
   const inventory = calculateInventory(plan.currentStock, plan.sales, plan.supply, plan.inbound, plan.outbound);
   document.querySelector('#product-meta').innerHTML = `<div><span>商品コード</span><strong>${product.code}</strong></div><div><span>調達区分</span><strong>${product.type === 'make' ? '自社製造品' : '仕入品'}</strong></div><div><span>現在庫</span><strong>${format(plan.currentStock)} cs</strong></div><div><span>安全在庫</span><strong>${format(product.safety)} cs</strong></div>`;
-  document.querySelector('#plan-head').innerHTML = `<tr><th>計画項目</th>${WEEKS.map(week => `<th>${week}</th>`).join('')}</tr>`;
+  document.querySelector('#plan-head').innerHTML = `<tr><th>計画項目</th>${PLAN_WEEKS.map(week => `<th>${week}</th>`).join('')}</tr>`;
   document.querySelector('#plan-table').innerHTML = planRow('販売計画','出荷予定',plan.sales) + planRow(product.type === 'make' ? '製造計画' : '発注・入荷計画', product.type === 'make' ? '工場から供給' : '仕入先から入荷',plan.supply) + planRow('倉庫間入庫','移動入庫',plan.inbound) + planRow('倉庫間出庫','移動出庫',plan.outbound) + planRow('週末未来在庫','自動計算',inventory,true);
   drawChart(inventory, product.safety);
 }
@@ -53,7 +58,7 @@ function drawChart(values, safety) {
   const x=i=>pad.left+i*(width-pad.left-pad.right)/7, y=v=>pad.top+(max-v)*(height-pad.top-pad.bottom)/(max-min);
   ctx.font='11px sans-serif'; ctx.fillStyle='#718095'; ctx.textAlign='right';
   for(let i=0;i<5;i++){const v=min+(max-min)*i/4,py=y(v);ctx.beginPath();ctx.strokeStyle='#e6eaf0';ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillText(Math.round(v),pad.left-10,py+4);}
-  ctx.textAlign='center'; WEEKS.forEach((w,i)=>ctx.fillText(w,x(i),height-12));
+  ctx.textAlign='center'; PLAN_WEEKS.forEach((w,i)=>ctx.fillText(w,x(i),height-12));
   ctx.setLineDash([6,5]);ctx.beginPath();ctx.strokeStyle='#e4a72d';ctx.lineWidth=2;ctx.moveTo(x(0),y(safety));ctx.lineTo(x(7),y(safety));ctx.stroke();ctx.setLineDash([]);
   ctx.beginPath();ctx.strokeStyle='#2563a9';ctx.lineWidth=3;values.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));ctx.stroke();
   values.forEach((v,i)=>{ctx.beginPath();ctx.fillStyle=getStatus(v,safety)==='shortage'?'#d74747':'#2563a9';ctx.arc(x(i),y(v),4.5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();});
@@ -61,7 +66,7 @@ function drawChart(values, safety) {
 
 document.querySelector('#purchases').innerHTML = purchaseOrders.map(order => `<article><div><strong>${order.product}</strong><span class="po-${order.level}">${order.alert}</span></div><dl><dt>発注予定数量</dt><dd>${format(order.quantity)} cs</dd><dt>入荷予定週</dt><dd>${order.arrival}</dd><dt>リードタイム</dt><dd>${order.lead}</dd></dl></article>`).join('');
 function capacityClass(rate){return rate>100?'over':rate>=95?'heavy':rate>=80?'care':'ok';}
-document.querySelector('#factories').innerHTML = factories.map(factory => `<article><div class="factory-head"><div><h3>${factory.name}</h3><span>${factory.products}</span></div><strong>最大能力 ${format(factory.capacity)} cs/週</strong></div><div class="capacity-weeks">${factory.plan.map((value,i)=>{const rate=Math.round(value/factory.capacity*100);return `<div><span>${WEEKS[i]}</span><div class="capbar"><i class="${capacityClass(rate)}" style="height:${Math.min(rate,110)*.7}%"></i></div><strong class="${capacityClass(rate)}-text">${rate}%</strong><small>${format(value)}</small></div>`}).join('')}</div></article>`).join('');
+document.querySelector('#factories').innerHTML = factories.map(factory => `<article><div class="factory-head"><div><h3>${factory.name}</h3><span>${factory.products}</span></div><strong>最大能力 ${format(factory.capacity)} cs/週</strong></div><div class="capacity-weeks">${factory.plan.map((value,i)=>{const rate=Math.round(value/factory.capacity*100);return `<div><span>${PLAN_WEEKS[i]}</span><div class="capbar"><i class="${capacityClass(rate)}" style="height:${Math.min(rate,110)*.7}%"></i></div><strong class="${capacityClass(rate)}-text">${rate}%</strong><small>${format(value)}</small></div>`}).join('')}</div></article>`).join('');
 
 [productSelect,warehouseSelect].forEach(select=>select.addEventListener('change',renderSimulation));
 window.addEventListener('resize',renderSimulation);
@@ -90,14 +95,13 @@ document.querySelectorAll('.nav-tabs button').forEach(button=>button.addEventLis
 
 let productionPlan = initialBatches.map(batch => ({ ...batch }));
 const productById = Object.fromEntries(planningProducts.map(product => [product.id, product]));
-const formatDate = date => `${Number(date.slice(5, 7))}/${Number(date.slice(8))}`;
-const weekDay = date => ['日','月','火','水','木','金','土'][new Date(`${date}T00:00:00`).getDay()];
+const weekDay = date => ['日','月','火','水','木','金','土'][new Date(`${date}T00:00:00Z`).getUTCDay()];
 function plannerStatus(value, safety) { return value < 0 ? 'shortage' : value < safety ? 'warning' : 'normal'; }
 
 function renderPlanner() {
   const board = document.querySelector('#schedule-board');
   board.innerHTML = `<div class="schedule-corner"><small>DATE / LINE</small><strong>日付</strong></div>${LINES.map(line => `<div class="line-heading"><small>${line.factory}</small><strong>${line.line}</strong><span>最大 16.0h / 日</span></div>`).join('')}` + PLANNING_DATES.map(date => {
-    const isWeekend = [0,6].includes(new Date(`${date}T00:00:00`).getDay());
+    const isWeekend = [0,6].includes(new Date(`${date}T00:00:00Z`).getUTCDay());
     return `<div class="date-heading ${isWeekend ? 'weekend' : ''}"><strong>${formatDate(date)}</strong><span>${weekDay(date)}</span></div>` + LINES.map(line => renderScheduleCell(date, line.id));
   }).join('');
   bindPlannerDragAndDrop();
@@ -127,11 +131,13 @@ function bindPlannerDragAndDrop() {
 
 function renderFutureInventory() {
   const results = planningProducts.map(product => ({ product, ...calculatePlanningInventory(product, productionPlan) }));
-  document.querySelector('#future-head').innerHTML = `<tr><th>商品 / リスク</th><th>現在庫</th>${WEEKS.map(week => `<th>${week}<small>販売 / 製造 / 週末</small></th>`).join('')}<th>安全在庫</th></tr>`;
+  document.querySelector('#future-head').innerHTML = `<tr><th>商品 / リスク</th><th>現在庫</th>${PLAN_WEEKS.map(week => `<th>${week}<small>販売 / 製造 / 週末</small></th>`).join('')}<th>安全在庫</th></tr>`;
   document.querySelector('#future-body').innerHTML = results.map(({ product, weeklyProduction, inventory }) => { const worst = inventory.some(value => value < 0) ? 'shortage' : inventory.some(value => value < product.safety) ? 'warning' : 'normal'; const labels = {normal:'正常',warning:'安全在庫割れ',shortage:'欠品'}; return `<tr><th><i class="product-dot" style="background:${product.color}"></i>${product.name}<span class="risk-pill ${worst}">● ${labels[worst]}</span></th><td><strong>${format(product.currentStock)}</strong></td>${inventory.map((stock,index) => `<td class="${plannerStatus(stock,product.safety)}"><span>${format(product.weeklySales[index])}</span><span class="production">+${format(weeklyProduction[index])}</span><strong>${format(stock)}</strong></td>`).join('')}<td>${format(product.safety)}</td></tr>`; }).join('');
   const shortageCount = results.filter(({inventory}) => inventory.some(value => value < 0)).length;
   const warningCount = results.filter(({product,inventory}) => !inventory.some(value => value < 0) && inventory.some(value => value < product.safety)).length;
-  document.querySelector('#ai-analysis').innerHTML = `<section><small>AI ANALYSIS</small><h3>現在の製造計画</h3><div class="risk-counts"><div><b class="red">${shortageCount}</b><span>欠品リスク</span></div><div><b class="amber">${warningCount}</b><span>安全在庫割れ</span></div></div></section><section><small>RECOMMENDED ACTION</small><h3>推奨対応</h3><p><strong>冷凍うどん</strong>の製造を8/24から8/18へ前倒しすると、第1週の欠品を回避できます。</p><div class="suggestion-route"><span>8/24<br><b>泉 L1</b></span><i>→</i><span>8/18<br><b>泉 L1</b></span></div></section>`;
+  const suggestionFrom = formatDate(addDays(PLAN_START_DATE, 7));
+  const suggestionTo = formatDate(addDays(PLAN_START_DATE, 1));
+  document.querySelector('#ai-analysis').innerHTML = `<section><small>AI ANALYSIS</small><h3>現在の製造計画</h3><div class="risk-counts"><div><b class="red">${shortageCount}</b><span>欠品リスク</span></div><div><b class="amber">${warningCount}</b><span>安全在庫割れ</span></div></div></section><section><small>RECOMMENDED ACTION</small><h3>推奨対応</h3><p><strong>冷凍うどん</strong>の製造を${suggestionFrom}から${suggestionTo}へ前倒しすると、第1週の欠品を回避できます。</p><div class="suggestion-route"><span>${suggestionFrom}<br><b>泉 L1</b></span><i>→</i><span>${suggestionTo}<br><b>泉 L1</b></span></div></section>`;
   drawPlannerChart(results.slice(0, 5));
 }
 
@@ -139,12 +145,12 @@ function drawPlannerChart(results) {
   const chart = document.querySelector('#planner-inventory-chart'), ratio = window.devicePixelRatio || 1, width = chart.clientWidth, height = chart.clientHeight;
   if (!width) return; chart.width = width * ratio; chart.height = height * ratio; const ctx = chart.getContext('2d'); ctx.scale(ratio,ratio); ctx.clearRect(0,0,width,height);
   const pad={left:46,right:105,top:18,bottom:30}, values=results.flatMap(item=>item.inventory), max=Math.max(...values,1000), min=Math.min(...values,-200), x=i=>pad.left+i*(width-pad.left-pad.right)/7, y=v=>pad.top+(max-v)*(height-pad.top-pad.bottom)/(max-min);
-  ctx.font='10px sans-serif'; ctx.fillStyle='#718095'; ctx.textAlign='right'; for(let i=0;i<4;i++){const v=min+(max-min)*i/3,py=y(v);ctx.strokeStyle='#e6eaf0';ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillText(Math.round(v),pad.left-8,py+3);} ctx.textAlign='center'; WEEKS.forEach((w,i)=>ctx.fillText(w,x(i),height-9));
+  ctx.font='10px sans-serif'; ctx.fillStyle='#718095'; ctx.textAlign='right'; for(let i=0;i<4;i++){const v=min+(max-min)*i/3,py=y(v);ctx.strokeStyle='#e6eaf0';ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillText(Math.round(v),pad.left-8,py+3);} ctx.textAlign='center'; PLAN_WEEKS.forEach((w,i)=>ctx.fillText(w,x(i),height-9));
   results.forEach(({product,inventory},ri)=>{ctx.beginPath();ctx.strokeStyle=product.color;ctx.lineWidth=2;inventory.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));ctx.stroke();ctx.fillStyle=product.color;ctx.textAlign='left';ctx.fillText(product.name,width-pad.right+12,25+ri*20);});
 }
 
 function showPlannerToast(message) { const toast=document.querySelector('#planner-toast'); toast.textContent=`✓ ${message}`; toast.classList.add('show'); clearTimeout(showPlannerToast.timer); showPlannerToast.timer=setTimeout(()=>toast.classList.remove('show'),4000); }
-document.querySelector('#apply-ai-suggestion').addEventListener('click',()=>{const batch=productionPlan.find(item=>item.id==='b15');batch.date='2026-08-18';batch.lineId='izumi-l1';showPlannerToast('AI提案を適用しました。冷凍うどんの欠品リスクが解消されました');renderPlanner();});
+document.querySelector('#apply-ai-suggestion').addEventListener('click',()=>{const batch=productionPlan.find(item=>item.id==='b15');batch.date=addDays(PLAN_START_DATE,1);batch.lineId='izumi-l1';showPlannerToast('AI提案を適用しました。冷凍うどんの欠品リスクが解消されました');renderPlanner();});
 document.querySelector('#create-ai-plan').addEventListener('click',()=>{productionPlan=optimizedBatches.map(batch=>({...batch}));showPlannerToast('販売計画・現在庫・安全在庫・ライン能力をもとにAIが製造計画案を作成しました');renderPlanner();});
 window.addEventListener('resize',()=>{if(!views.planning.hidden) renderFutureInventory();});
 renderSimulation();

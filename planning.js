@@ -1,4 +1,27 @@
-export const PLANNING_DATES = Array.from({ length: 12 }, (_, index) => `2026-08-${String(17 + index).padStart(2, '0')}`);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export function addDays(date, days) {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day) + days * DAY_MS).toISOString().slice(0, 10);
+}
+
+export function getTokyoDate(now = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(now);
+  const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}
+
+export function getPlanningStart(date) {
+  const day = new Date(`${date}T00:00:00Z`).getUTCDay();
+  return addDays(date, -(day === 0 ? 6 : day - 1));
+}
+
+export const REFERENCE_DATE = getTokyoDate();
+export const PLAN_START_DATE = getPlanningStart(REFERENCE_DATE);
+export const PLANNING_DATES = Array.from({ length: 8 * 7 }, (_, index) => addDays(PLAN_START_DATE, index));
+export const WEEK_START_DATES = Array.from({ length: 8 }, (_, index) => addDays(PLAN_START_DATE, index * 7));
 export const LINES = [
   { id: 'izumi-l1', factory: '泉工場', line: 'L1' },
   { id: 'izumi-l2', factory: '泉工場', line: 'L2' },
@@ -24,20 +47,20 @@ export const planningProducts = productSeed.map(([id,name,currentStock,safety,sa
 }));
 
 export const initialBatches = [
-  ['b01','soba',900,9,'2026-08-17','izumi-l1'],['b02','napoli',800,8,'2026-08-17','izumi-l2'],
-  ['b03','shoyu',850,8.5,'2026-08-17','tondabayashi-l1'],['b04','miso',800,8,'2026-08-17','tondabayashi-l2'],
-  ['b05','carbonara',700,7,'2026-08-18','izumi-l1'],['b06','bolognese',700,7.5,'2026-08-18','izumi-l2'],
-  ['b07','yakisoba',900,9,'2026-08-18','tondabayashi-l1'],['b08','chanpon',720,7.5,'2026-08-18','tondabayashi-l2'],
-  ['b09','tantan',650,7,'2026-08-19','izumi-l1'],['b10','soba',850,8.5,'2026-08-19','izumi-l2'],
-  ['b11','napoli',650,6.5,'2026-08-20','tondabayashi-l1'],['b12','shoyu',700,7,'2026-08-20','tondabayashi-l2'],
-  ['b13','miso',750,7.5,'2026-08-21','izumi-l1'],['b14','carbonara',680,7,'2026-08-21','izumi-l2'],
-  ['b15','udon',1200,12,'2026-08-24','izumi-l1'],['b16','yakisoba',850,8.5,'2026-08-24','tondabayashi-l1'],
-  ['b17','bolognese',720,7.5,'2026-08-25','izumi-l2'],['b18','chanpon',700,7,'2026-08-25','tondabayashi-l2'],
-  ['b19','tantan',650,7,'2026-08-26','izumi-l1'],['b20','shoyu',800,8,'2026-08-27','tondabayashi-l1']
-].map(([id,productId,quantity,hours,date,lineId]) => ({ id, productId, quantity, hours, date, lineId }));
+  ['b01','soba',900,9,0,'izumi-l1'],['b02','napoli',800,8,0,'izumi-l2'],
+  ['b03','shoyu',850,8.5,0,'tondabayashi-l1'],['b04','miso',800,8,0,'tondabayashi-l2'],
+  ['b05','carbonara',700,7,1,'izumi-l1'],['b06','bolognese',700,7.5,1,'izumi-l2'],
+  ['b07','yakisoba',900,9,1,'tondabayashi-l1'],['b08','chanpon',720,7.5,1,'tondabayashi-l2'],
+  ['b09','tantan',650,7,2,'izumi-l1'],['b10','soba',850,8.5,2,'izumi-l2'],
+  ['b11','napoli',650,6.5,3,'tondabayashi-l1'],['b12','shoyu',700,7,3,'tondabayashi-l2'],
+  ['b13','miso',750,7.5,4,'izumi-l1'],['b14','carbonara',680,7,4,'izumi-l2'],
+  ['b15','udon',1200,12,7,'izumi-l1'],['b16','yakisoba',850,8.5,7,'tondabayashi-l1'],
+  ['b17','bolognese',720,7.5,8,'izumi-l2'],['b18','chanpon',700,7,8,'tondabayashi-l2'],
+  ['b19','tantan',650,7,9,'izumi-l1'],['b20','shoyu',800,8,10,'tondabayashi-l1']
+].map(([id,productId,quantity,hours,dayOffset,lineId]) => ({ id, productId, quantity, hours, date: addDays(PLAN_START_DATE, dayOffset), lineId }));
 
 export const optimizedBatches = initialBatches.map(batch => batch.id === 'b15'
-  ? { ...batch, date: '2026-08-18', lineId: 'izumi-l1' }
+  ? { ...batch, date: addDays(PLAN_START_DATE, 1), lineId: 'izumi-l1' }
   : { ...batch });
 
 export function cellConstraint(batches) {
@@ -49,8 +72,8 @@ export function cellConstraint(batches) {
 export function calculatePlanningInventory(product, batches) {
   const weeklyProduction = Array(8).fill(0);
   batches.filter(batch => batch.productId === product.id).forEach(batch => {
-    const dateIndex = Math.max(0, Math.floor((Number(batch.date.slice(-2)) - 17) / 7));
-    weeklyProduction[Math.min(dateIndex, 7)] += batch.quantity;
+    const dateIndex = Math.floor((Date.parse(`${batch.date}T00:00:00Z`) - Date.parse(`${PLAN_START_DATE}T00:00:00Z`)) / DAY_MS / 7);
+    if (dateIndex >= 0 && dateIndex < 8) weeklyProduction[dateIndex] += batch.quantity;
   });
   let stock = product.currentStock;
   const inventory = product.weeklySales.map((sales, index) => {
