@@ -1,62 +1,27 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="8週間の未来在庫を確認できる学習用需給計画システム">
-  <title>Stockscape｜超小型需給計画</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="架空データでSCMの将来像を共有するエグゼクティブ向けPoC">
+  <title>SCM Executive Dashboard｜Stockscape</title><link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="hero">
-    <nav class="nav" aria-label="メインナビゲーション">
-      <a class="brand" href="#">Stock<span>scape</span></a>
-      <div class="nav-note"><span class="live-dot"></span> 学習用デモデータ</div>
-    </nav>
-    <div class="hero-content">
-      <div>
-        <p class="eyebrow">SUPPLY &amp; DEMAND PLANNING</p>
-        <h1>未来の在庫を、<br><em>ひと目で。</em></h1>
-      </div>
-      <p class="hero-copy">販売計画と製造計画から、冷凍食品3商品の<br class="desktop">8週間先までの在庫推移をシミュレーションします。</p>
-    </div>
-  </header>
-
+  <header class="topbar"><div class="brand">Stock<span>scape</span><i></i><small>SCM Control Tower</small></div><div class="header-actions"><span class="data-badge">● DEMO DATA</span><span>最終更新 2026/08/16 09:00</span><button aria-label="通知">🔔<b>5</b></button></div></header>
+  <nav class="nav-tabs" aria-label="表示モード"><button class="active" data-view="executive">経営ダッシュボード</button><button data-view="operations">需給シミュレーション</button><button data-view="operations">製造・発注計画</button></nav>
   <main>
-    <section class="summary" aria-label="全体サマリー">
-      <article><span>対象商品</span><strong>3<small>商品</small></strong></article>
-      <article><span>計画期間</span><strong>8<small>週間</small></strong></article>
-      <article><span>欠品見込み</span><strong id="shortage-count">0<small>件</small></strong></article>
-      <article><span>安全在庫割れ</span><strong id="warning-count">0<small>件</small></strong></article>
-    </section>
-
-    <section class="workspace" aria-labelledby="planning-title">
-      <div class="section-heading">
-        <div><p class="eyebrow dark">WEEKLY PLAN</p><h2 id="planning-title">8週間 需給計画</h2></div>
-        <p><span class="edit-mark">✎</span> 白い入力欄の製造数を変更できます</p>
-      </div>
-      <div id="product-tabs" class="tabs" role="tablist" aria-label="商品を選択"></div>
-      <div id="product-meta" class="product-meta"></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>計画項目</th><th>1週目</th><th>2週目</th><th>3週目</th><th>4週目</th><th>5週目</th><th>6週目</th><th>7週目</th><th>8週目</th></tr></thead>
-          <tbody id="plan-table"></tbody>
-        </table>
-      </div>
-      <div class="legend" aria-label="在庫ステータスの凡例">
-        <span><i class="normal"></i>適正在庫</span><span><i class="warning"></i>安全在庫未満</span><span><i class="shortage"></i>欠品（0未満）</span>
-      </div>
-    </section>
-
-    <section class="chart-section" aria-labelledby="chart-title">
-      <div class="section-heading">
-        <div><p class="eyebrow dark">INVENTORY OUTLOOK</p><h2 id="chart-title">在庫推移</h2></div>
-        <div class="chart-legend"><span><i class="line-stock"></i>週末在庫</span><span><i class="line-safe"></i>安全在庫</span></div>
-      </div>
-      <div class="chart-card"><canvas id="inventory-chart" role="img" aria-label="選択商品の8週間の週末在庫と安全在庫の折れ線グラフ"></canvas></div>
-    </section>
-  </main>
-  <footer><strong>Stockscape</strong><span>架空データで学ぶ、需給計画の基本</span></footer>
+    <section class="page-head"><div><p>EXECUTIVE OVERVIEW</p><h1>SCM Executive Dashboard</h1><span>今後8週間の需給・在庫・供給リスクを俯瞰</span></div><div class="period">計画期間 <strong>第1週 — 第8週</strong></div></section>
+    <section id="kpis" class="kpi-grid" aria-label="経営KPIサマリ"></section>
+    <div class="two-col">
+      <section class="panel"><div class="panel-title"><div><small>NETWORK STATUS</small><h2>倉庫別SCM状況</h2></div><span class="unit">単位：ケース</span></div><div id="warehouses" class="warehouse-grid"></div></section>
+      <section class="panel alerts-panel"><div class="panel-title"><div><small>ACTION REQUIRED</small><h2>要対応アラート</h2></div><span class="alert-total">5件</span></div><div id="alerts"></div></section>
+    </div>
+    <section class="ai-comment"><div class="ai-icon">✦</div><div><small>SCM INSIGHT / AIコメント（デモ）</small><p>今後8週間では、<strong>関東倉庫の冷凍うどん</strong>と<strong>北海道倉庫の冷凍餃子</strong>に欠品リスクがあります。泉工場は第3週にキャパ使用率95%となるため、富工場への生産振替を検討してください。</p></div><span>ルールベースで生成</span></section>
+    <section class="panel simulation" id="operations"><div class="panel-title"><div><small>SUPPLY &amp; DEMAND SIMULATION</small><h2>商品別需給シミュレーション</h2></div><div class="selectors"><label>商品<select id="product-select"></select></label><label>倉庫<select id="warehouse-select"></select></label></div></div><div id="product-meta" class="product-meta"></div><div class="table-wrap"><table><thead id="plan-head"></thead><tbody id="plan-table"></tbody></table></div><div class="legend"><span><i class="normal"></i>適正在庫</span><span><i class="warning"></i>安全在庫未満</span><span><i class="shortage"></i>欠品（0未満）</span></div></section>
+    <div class="two-col lower">
+      <section class="panel"><div class="panel-title"><div><small>INVENTORY OUTLOOK</small><h2>在庫推移グラフ</h2></div><div class="chart-legend"><span>━ 未来在庫</span><span>┅ 安全在庫</span></div></div><div class="chart"><canvas id="inventory-chart"></canvas></div></section>
+      <section class="panel"><div class="panel-title"><div><small>PROCUREMENT</small><h2>仕入品発注管理</h2></div></div><div id="purchases" class="purchase-list"></div></section>
+    </div>
+    <section class="panel factory"><div class="panel-title"><div><small>FACTORY CAPACITY</small><h2>製造計画・工場キャパ</h2></div><div class="capacity-legend"><i class="ok"></i>正常 <i class="care"></i>注意 <i class="heavy"></i>高負荷 <i class="over"></i>能力不足</div></div><div id="factories" class="factory-grid"></div></section>
+  </main><footer><strong>Stockscape</strong><span>SCM Control Tower — Executive PoC / すべて架空データ</span></footer>
   <script type="module" src="app.js"></script>
-</body>
-</html>
+</body></html>

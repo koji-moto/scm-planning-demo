@@ -18,3 +18,10 @@ test('安全在庫未満と欠品を正しく判定する', () => {
   assert.equal(getStatus(299, 300), 'warning');
   assert.equal(getStatus(-1, 300), 'shortage');
 });
+
+test('倉庫間入出庫を含む在庫計算を行う', () => {
+  assert.deepEqual(
+    calculateInventory(100, [40, 50], [30, 20], [10, 5], [5, 15]),
+    [95, 55]
+  );
+});
