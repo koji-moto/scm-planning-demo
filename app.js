@@ -102,7 +102,7 @@ function renderPlanner() {
   const board = document.querySelector('#schedule-board');
   board.innerHTML = `<div class="schedule-corner"><small>DATE / LINE</small><strong>日付</strong></div>${LINES.map(line => `<div class="line-heading"><small>${line.factory}</small><strong>${line.line}</strong><span>最大 16.0h / 日</span></div>`).join('')}` + PLANNING_DATES.map(date => {
     const isWeekend = [0,6].includes(new Date(`${date}T00:00:00Z`).getUTCDay());
-    return `<div class="date-heading ${isWeekend ? 'weekend' : ''}"><strong>${formatDate(date)}</strong><span>${weekDay(date)}</span></div>` + LINES.map(line => renderScheduleCell(date, line.id));
+    return `<div class="date-heading ${isWeekend ? 'weekend' : ''}"><strong>${formatDate(date)}</strong><span>${weekDay(date)}</span></div>` + LINES.map(line => renderScheduleCell(date, line.id)).join('');
   }).join('');
   bindPlannerDragAndDrop();
   renderFutureInventory();
